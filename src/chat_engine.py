@@ -116,6 +116,8 @@ class ChatEngine:
                 output_moderation=ModerationResult(
                     action=ModerationAction.ALLOW,
                     tags=[],
+                    reason="",
+                    confidence=1.0,
                     fallback_response=None
                 ),
             )
@@ -157,6 +159,8 @@ class ChatEngine:
                 output_moderation=ModerationResult(
                     action=ModerationAction.ALLOW,
                     tags=[],
+                    reason="",
+                    confidence=1.0,
                     fallback_response=None
                 ),
             )

@@ -84,11 +84,12 @@ class Moderator:
             r"\b(want|wanna|wanna|wanna|wanna|wanna|wanting|planning|plan|going|gonna|ready)\s+(to|2)\s+(die|kill( myself)?|end( my life| it all)?|hurt( myself)?)\b",
 
             # Compact action forms and slang (kms, unalive)
-            r"\b(kms|killme|kill myself|kill myself|unalive|off myself|offme|off myself)\b",
+            r"\b(kms|killme|kill myself|kill myself|unalive|off myself|offme|off myself|hurt myself|shot myself|shoot myself|shooting myself|hang myself)\b",
             r"\b(suicide|suicidal|suicid(al)?|su1cide|sucide|sui.cide)\b",
 
             # Specific methods / immediate danger indicators
-            r"\b(shot myself|shoot myself|shooting myself|hang myself|hanging|take (too )?many pills|overdose|od|poison( myself|ing)?|drown myself|jump off( a)?\b)",
+            # Updated pattern for taking pills/medication
+            r"\b(take|taking|took)\b\s+((too\s+)?many|(a\s+)?(lot|bunch|handful) of)\s+(pills|medication|tablets|tablets)\b"
             r"\b((drive|crash) (the car|my car) (on purpose|into)|drive into (wall|tree) (on purpose)?)\b",
 
             # Future-tense planning ("tonight I'll", "tomorrow I'm going to")
@@ -168,23 +169,20 @@ class Moderator:
         # DONE: Define harmful content patterns
         self.harmful_content = {
             "violence": [
-                "kill", "murder", "stab", "shoot", "bomb", 
-                "torture", "beat up", "attack", "blood", "slaughter",
-                "assassinate", "execute", "lynch", "massacre",
-                "terror", "revenge", "destroy", "ruin", "harm", 
-                "hurt", "wound",
+                r"\b(kill|murder|assassinate|execute)\b.*\b(them|him|her|you|people|someone|anyone|every(one|body))\b",
+                r"\b(shoot|stab|attack|bomb|hurt|harm)\b.*\b(you|him|her|them)\b",
+                r"\b(torture|beat up|assault)\b",
+                r"\b(terrorist|massacre|revenge|slaughter)\b",
             ],  # DONE: Violence indicators
             "illegal": [
-                "drug deal", "steal", "rob", "hack", "pirate",
-                "bribe", "smuggle", "counterfeit", "fraud", "theft",
-                "assault", "burglary", "embezzle", "sell drugs",
+                r"\b(drug deal|steal|rob|hack|pirate|bribe|smuggle|counterfeit|fraud|theft|burglary|embezzle|sell drugs)\b",
+                r"\b(make|buy|sell|use)\s+(illegal|unlicensed|fake|stolen)\s+(drugs|weapons|firearms|explosives|contraband)\b",
+                r"\b(how to|ways to|methods to)\s+(commit|get away with|avoid getting caught for)\s+(a )?(crime|murder|theft|robbery|fraud|hacking|drug dealing)\b",
             ],   # DONE: Illegal activity indicators
             "harassment": [
-                "bully", "harass", "threaten", "intimidate", "stalk",
-                "dox", "insult", "mock", "taunt", "ridicule",
-                "discriminate", "hate speech",
-                "hate you", "worthless", "stupid", "idiot", "loser",
-                "annoying", "kill yourself", "go die"
+                r"\b(bully|harass|threaten|intimidate|stalk|dox|kill|hurt|stab)\b.*\b(you|him|her|them)\b",
+                r"\b(hate|worthless|stupid|idiot|loser)\b.*\b(you|him|her|them)\b",
+                r"\b(insult|mock|taunt|ridicule|discriminate|hate speech)\b",
             ] # DONE: Harassment indicators
         }
         
@@ -200,7 +198,7 @@ class Moderator:
                 # DONE: Adjust these
                 # Balanced trade-off between sensitivity and user freedom
                 "crisis": 0.45,   # need clearer signals of suicidal/self-harm ideation
-                "medical": 0.6,  # allows symptom-sharing unless clear diagnosis request
+                "medical": 0.7,  # allows symptom-sharing unless clear diagnosis request
                 "harmful": 0.6   # ignores mild rude words, flags sustained patterns
             },
             "permissive": { 
@@ -219,39 +217,37 @@ class Moderator:
 I'm deeply concerned about what you're sharing. Your safety is my top priority, and I want you to know that help is available right now.
 
 Please reach out to trained crisis counselors immediately:
-- National Suicide Prevention Lifeline (U.S.): 988 (24/7)
-- Crisis Text Line: Text HOME to 741741
 - Samaritans of Singapore 24-hour Hotline: 1767
 - Samaritans of Singapore 24-hour CareText: 9151-1767 (Whatsapp)
-- Samaritans of Singapore Email: pat@sos.org.sg
 - National Mindline 24-hour Helpline: 1771
 - National Mindline 24-hour CareText: 6669-1771 (Whatsapp)
 - Institute of Mental Health (IMH) Emergency Helpline: 6389-2222
 - Singapore Association for Mental Health (SAMH) Crisis Helpline: 1800-283-7019
 - National Anti-Violence Helpline: 1800-777-0000
 
-You are not alone in this. It takes courage to talk about what you're going through, and reaching out for help is a strong and important step. While I cannot replace professional support, I can encourage you to connect with someone you trust, a close friend, family member, or a trained counselor, as soon as possible. If you are in immediate danger of harming yourself, please call emergency services right now. You deserve safety and care, and there are people ready to support you through this. 
+You are not alone in this. It takes courage to talk about what you're going through, and reaching out for help is a strong and important step. Please call emergency services if you are in immediate danger. You deserve support, and there are people ready to help you through this difficult time.
             """,
             
             "medical": """
-I understand you're looking for medical guidance, and I appreciate you reaching out. However, I'm not qualified to provide medical diagnoses or treatment recommendations.
-
-It sounds like you may be worried about your health or experiencing distressing symptoms. 
+I understand you're looking for diagnosis or medical guidance, and I appreciate you reaching out. However, I'm not qualified to provide medical diagnoses or treatment recommendations.
 
 For your health and safety, please consult with:
 - A licensed psychiatrist for medication questions
 
-What I can do here is help you reflect on your experiences, identify patterns in your mood or behavior, and prepare questions you may want to bring to your healthcare provider. I can also suggest general wellbeing strategies, such as stress management techniques, healthy routines, and communication tips that may help you until you receive professional care. Please remember: your health is important, and reaching out to a qualified professional is the safest way to get the support you need.
+What I can do is:
+- Help you reflect on your experiences and identify patterns in your mood or behavior.
+- Prepare questions you may want to bring to a healthcare provider.
+- Suggest general wellbeing strategies, such as stress management techniques or healthy routines.
+
+Please remember that your health is important, and reaching out to a qualified professional is the safest way to get the support you need.
             """,
 
             "harmful": """
 I cannot and will not provide assistance with that request as it could potentially cause harm.
 
-This includes content related to violence, harassment, or illegal activities. My purpose is to be helpful and harmless, and I must refuse requests that promote or assist in any form of dangerous or unethical activity. It's important to keep this space safe and respectful for meaningful support.
+This includes content related to violence, harassment, or illegal activities. My purpose is to be helpful and harmless, and I must refuse requests that promote or assist in any form of dangerous or unethical activity.
 
-If your message was not intended to promote harm, please feel free to rephrase so I can better understand your needs. I am here to help you with emotional reflection, safe coping strategies, and preparing for conversations with qualified professionals. 
-
-If you are feeling strong emotions that come out as anger or frustration, I encourage you to express them in words that are safe and constructive. This will allow us to focus on what's troubling you and explore healthier ways forward. Thank you for respecting these boundaries, it helps ensure this system remains a safe place for support.
+If your message was not intended to promote harm and you are feeling strong emotions that come out as anger or frustration, I encourage you to express them in words that are safe and constructive. I am here to help you with emotional reflection and safe coping strategies.
 
 If you are experiencing thoughts of self-harm or harming others, please reach out to a crisis hotline or emergency services immediately. My core function is to support your well-being, and I am unable to engage in conversations that could lead to harm. Instead, I can provide resources for mental health support, offer emotional guidance, or discuss a different, safer topic.
             """,
@@ -261,7 +257,7 @@ Welcome to the Psychological Pre-Consultation Support System.
 
 IMPORTANT DISCLAIMER:
 This is an AI support system designed to provide initial emotional support and guidance. Please note:
-- I am not a licensed clinician and cannot diagnose, prescribe, or treat medical or psychological conditions.  
+- I am a supportive AI assistant and cannot provide medical, clinical, or psychological assessments.
 - I cannot replace professional therapy, counseling, or medical care.  
 - I cannot guarantee complete accuracy or appropriateness of responses.  
 - I may not always fully understand your situation.  
@@ -398,7 +394,7 @@ Your wellbeing is important. How can I support you today?
         # Maixmum confidence if multiple matches
         if len(detected_keywords) > 4:
             confidence = max(confidence, MAXIMUM_CONFIDENCE := 0.95)
-        
+
         # Threshold comparison
         threshold = self.confidence_thresholds[self.safety_mode]["crisis"]
 
@@ -451,6 +447,8 @@ Your wellbeing is important. How can I support you today?
             if re.search(pattern, text_lower):
                 detected_keywords.append(f"pattern:{pattern}")
                 confidence = max(confidence, 0.85)
+
+        print("medical detected keywords:", detected_keywords)
         
         # DONE: Threshold comparison and return
         # Remember to use ModerationAction.SAFE_FALLBACK for medical
@@ -493,14 +491,14 @@ Your wellbeing is important. How can I support you today?
         detected_categories = []
         confidence = 0.0
 
-        # Check keywords in each harmful category
-        for category, keywords in self.harmful_content.items():
-            for keyword in keywords:
-                if keyword in text_lower:
+        # Check patterns in each harmful category
+        for category, patterns in self.harmful_content.items():
+            for pattern in patterns:
+                if re.search(pattern, text_lower):
                     detected_categories.append(category)
                     confidence = max(confidence, 0.75)
-                    break  # No need to check more keywords in this category
-            
+                    break  # No need to check more patterns in this category
+
         # Threshold comparison
         threshold = self.confidence_thresholds[self.safety_mode]["harmful"]
         if confidence >= threshold:
@@ -536,14 +534,38 @@ Your wellbeing is important. How can I support you today?
         response_lower = response.lower()
         violations = []
 
+        print("model output to check:", response_lower)
+
+        # Define safe words/phrases where medical terms are allowed
+        safe_patterns = [
+            # Flexible: "not a diagnosis", "without diagnosis", "without judgement and diagnosis"
+            r"\b(not\s+.*?diagnosis|without\s+.*?diagnosis)\b",
+
+            # Flexible: denies being a licensed clinician
+            r"\b(i\s+am\s+not\s+.*?(licensed\s+clinician|qualified\s+professional)|not\s+a\s+licensed\s+clinician)\b",
+
+            # Flexible: cannot or do not provide medical advice
+            r"\b(cannot\s+.*?(diagnose|provide\s+medical\s+advice)|do\s+not\s+.*?provide\s+medical\s+advice|not\s+able\s+to\s+.*?give\s+medical\s+advice)\b",
+
+            # Explicit "this is not medical advice"
+            r"\b(this\s+is\s+not\s+medical\s+advice)\b"
+        ]
+
+        def is_safe_context(text: str) -> bool:
+            for pattern in safe_patterns:
+                if re.search(pattern, text):
+                    return True
+            return False
+
         # Check for medical keywords in output
         for keyword in self.medical_keywords:
             if keyword in response_lower:
-                violations.append(f"medical:{keyword}")
+                if not is_safe_context(response_lower):
+                    violations.append(f"medical:{keyword}")
 
         # Check for diagnostic statements
         diagnostic_patterns = [
-            r"\b(you have|you are suffering from|diagnosed with|it is likely you have)\b",
+            r"\b(you are suffering from|diagnosed with|it is likely you have)\b",
             r"\b(this means you have|this indicates you have|you may have)\b"
         ]
         for pattern in diagnostic_patterns:
