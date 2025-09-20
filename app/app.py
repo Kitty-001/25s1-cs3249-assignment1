@@ -64,6 +64,7 @@ HTML_TEMPLATE = """
       background-color: white;
       color: black;
       border-bottom-right-radius: 4px;
+      white-space: pre-wrap;
     }
     .bot {
       align-self: flex-start;
@@ -101,6 +102,40 @@ HTML_TEMPLATE = """
     button:hover {
       background-color: #8B9B97;
     }
+
+    /* Loading indicator styles */
+    .loading-indicator {
+      line-height: 1.4;
+      display: inline-block;
+      background-color: #38404B;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin: 6px 0;
+      align-self: flex-start;  /* left side like bot */
+    }
+    .loading-dots {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .loading-dots span {
+      width: 12px;
+      height: 12px;
+      background-color: white;
+      border-radius: 50%;
+      display: inline-block;
+      animation: blink 1.2s ease-in-out infinite;
+    }
+
+    .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0; }
+      40% { opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -113,6 +148,7 @@ HTML_TEMPLATE = """
 
   <script>
     const input = document.getElementById("user-input");
+    const container = document.getElementById("chat-container");
 
     function adjustInputHeight() {
       input.style.height = "auto"; // Reset height
@@ -135,14 +171,22 @@ HTML_TEMPLATE = """
       addMessage(text, "user");
       input.value = "";
       adjustInputHeight();
+      showLoading();
 
-      const response = await fetch("/chat", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({message: text})
-      });
-      const data = await response.json();
-      addMessage(data.reply, "bot");
+      try {
+        const response = await fetch("/chat", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({message: text})
+        });
+        const data = await response.json();
+        hideLoading();
+        addMessage(data.reply, "bot");
+      } catch (error) {
+        hideLoading();
+        addMessage("Error: Could not reach server.", "bot");
+        console.error("Error:", error);
+      }
     }
 
     // Enter to send, Shift+Enter for newline
@@ -155,13 +199,13 @@ HTML_TEMPLATE = """
 
     // Keep input height if user clicks outside
     document.addEventListener('click', (e) => {
-        if (!input.contains(e.target)) {
-            if (!input.value.trim()) {
-            input.style.height = 'auto'; // shrink back if empty
-            } else {
-            adjustInputHeight(); // keep height if has content
-            }
+      if (!input.contains(e.target)) {
+        if (!input.value.trim()) {
+          input.style.height = 'auto'; // shrink back if empty
+        } else {
+          adjustInputHeight(); // keep height if has content
         }
+      }
     });
 
     function addMessage(text, sender) {
@@ -180,8 +224,25 @@ HTML_TEMPLATE = """
         addMessage(data.disclaimer, "bot");
       }
     }
-    # window.onload = loadDisclaimer;
+    window.onload = loadDisclaimer;
 
+    function showLoading() {
+      const loadingDiv = document.createElement('div');
+      loadingDiv.id = 'loading-indicator';
+      loadingDiv.className = 'loading-indicator';
+      loadingDiv.innerHTML = `
+        <div class="loading-dots">
+            <span></span><span></span><span></span>
+        </div>
+      `;
+      container.appendChild(loadingDiv);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function hideLoading() {
+      const loadingIndicator = document.getElementById('loading-indicator');
+      if (loadingIndicator) loadingIndicator.remove();
+    }
   </script>
 </body>
 </html>
