@@ -448,7 +448,7 @@ Your wellbeing is important. How can I support you today?
                 detected_keywords.append(f"pattern:{pattern}")
                 confidence = max(confidence, 0.85)
 
-        print("medical detected keywords:", detected_keywords)
+        logger.info(f"medical detected keywords: {detected_keywords}")
         
         # DONE: Threshold comparison and return
         # Remember to use ModerationAction.SAFE_FALLBACK for medical
@@ -534,7 +534,7 @@ Your wellbeing is important. How can I support you today?
         response_lower = response.lower()
         violations = []
 
-        print("model output to check:", response_lower)
+        logger.info(f"model output to check: {response}")
 
         # Define safe words/phrases where medical terms are allowed
         safe_patterns = [

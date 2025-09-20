@@ -1,8 +1,17 @@
+import logging
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
+from src.chat_engine import get_engine
 
 app = FastAPI()
+engine = get_engine()
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # --- HTML Template (chat window only) ---
 HTML_TEMPLATE = """
@@ -48,6 +57,7 @@ HTML_TEMPLATE = """
       border-radius: 12px;
       line-height: 1.4;
       word-wrap: break-word;
+      white-space: pre-wrap;
     }
     .user {
       align-self: flex-end;
@@ -162,11 +172,20 @@ HTML_TEMPLATE = """
       container.appendChild(div);
       container.scrollTop = container.scrollHeight;
     }
+
+    async function loadDisclaimer() {
+      const response = await fetch("/disclaimer");
+      const data = await response.json();
+      if (data.disclaimer) {
+        addMessage(data.disclaimer, "bot");
+      }
+    }
+    # window.onload = loadDisclaimer;
+
   </script>
 </body>
 </html>
 """
-
 
 
 # --- API Models ---
@@ -178,11 +197,29 @@ class ChatRequest(BaseModel):
 async def get_chat():
     return HTML_TEMPLATE
 
+@app.route("/disclaimer")
+async def disclaimer(req: ChatRequest):
+    try:
+        text = engine.moderator.get_disclaimer()
+        return JSONResponse(content={"disclaimer": text})
+    except Exception as e:
+        logger.exception(f"Error getting disclaimer: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"disclaimer": "Error fetching disclaimer."}
+        )
+
 @app.post("/chat", response_class=JSONResponse)
 async def chat(req: ChatRequest):
     # Here you can hook up your moderation engine + model
     user_msg = req.message
-    bot_reply = f"You said: {user_msg}"  # placeholder
+
+    # Process message through chat engine
+    result = engine.process_message(user_input=user_msg, include_context=True)
+
+    # Extract the final response text
+    bot_reply = result.get("response", "Sorry, something went wrong.")
+
     return {"reply": bot_reply}
 
 # --- Run the app with: uvicorn app.app:app --reload ---
