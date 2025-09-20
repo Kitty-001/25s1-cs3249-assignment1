@@ -18,14 +18,14 @@ HTML_TEMPLATE = """
       height: 100vh;
       display: flex;
       flex-direction: column;
-      background-color: #f7f7f8;
+      background-color: #E0E0E0;
     }
     #header {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
-      background-color: #0078ff;
+      background-color: #38404B;
       color: white;
       padding: 14px 20px;
       font-size: 18px;
@@ -51,14 +51,14 @@ HTML_TEMPLATE = """
     }
     .user {
       align-self: flex-end;
-      background-color: #0078ff;
-      color: white;
+      background-color: white;
+      color: black;
       border-bottom-right-radius: 4px;
     }
     .bot {
       align-self: flex-start;
-      background-color: #e5e5ea;
-      color: black;
+      background-color: #38404B;
+      color: white;
       border-bottom-left-radius: 4px;
     }
     #input-container {
@@ -90,7 +90,7 @@ HTML_TEMPLATE = """
   </style>
 </head>
 <body>
-  <div id="header">💬 My Chatbot</div>
+  <div id="header">💬 Psychological Pre-consultation Chatbot</div>
   <div id="chat-container"></div>
   <div id="input-container">
     <input type="text" id="user-input" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){sendMessage();}"/>
