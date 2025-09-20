@@ -217,15 +217,6 @@ HTML_TEMPLATE = """
       container.scrollTop = container.scrollHeight;
     }
 
-    async function loadDisclaimer() {
-      const response = await fetch("/disclaimer");
-      const data = await response.json();
-      if (data.disclaimer) {
-        addMessage(data.disclaimer, "bot");
-      }
-    }
-    window.onload = loadDisclaimer;
-
     function showLoading() {
       const loadingDiv = document.createElement('div');
       loadingDiv.id = 'loading-indicator';
@@ -258,7 +249,7 @@ class ChatRequest(BaseModel):
 async def get_chat():
     return HTML_TEMPLATE
 
-@app.route("/disclaimer")
+@app.get("/disclaimer")
 async def disclaimer(req: ChatRequest):
     try:
         text = engine.moderator.get_disclaimer()
