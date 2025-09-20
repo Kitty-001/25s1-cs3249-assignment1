@@ -73,11 +73,15 @@ HTML_TEMPLATE = """
       border: 1px solid #ccc;
       border-radius: 8px;
       font-size: 14px;
+      line-height: 20px;
+      resize: none;          /* disable manual resize */
+      overflow-y: hidden;    /* hide scroll initially */
+      max-height: 100px;     /* limit max height */
     }
     button {
       margin-left: 10px;
       padding: 10px 16px;
-      background-color: #0078ff;
+      background-color: #8B9B97;
       color: white;
       border: none;
       border-radius: 8px;
@@ -85,7 +89,7 @@ HTML_TEMPLATE = """
       font-size: 14px;
     }
     button:hover {
-      background-color: #005fcc;
+      background-color: #8B9B97;
     }
   </style>
 </head>
@@ -93,11 +97,26 @@ HTML_TEMPLATE = """
   <div id="header">💬 Psychological Pre-consultation Chatbot</div>
   <div id="chat-container"></div>
   <div id="input-container">
-    <input type="text" id="user-input" placeholder="Type your message..." onkeydown="if(event.key==='Enter'){sendMessage();}"/>
+    <textarea id="user-input" placeholder="Type your message..." rows="1"></textarea>
     <button onclick="sendMessage()">Send</button>
   </div>
 
   <script>
+    const input = document.getElementById("user-input");
+
+    function adjustInputHeight() {
+      input.style.height = "auto"; // Reset height
+      const maxHeight = 100;
+      if (input.scrollHeight > maxHeight) {
+        input.style.height = maxHeight + "px";
+        input.style.overflowY = "scroll"; // Enable scroll if exceeds max
+      } else {
+        input.style.height = input.scrollHeight + "px"; // Set to scrollHeight
+        input.style.overflowY = "hidden"; // Hide scroll
+      }
+    }
+    input.addEventListener("input", adjustInputHeight);
+
     async function sendMessage() {
       const input = document.getElementById("user-input");
       const text = input.value.trim();
@@ -105,6 +124,7 @@ HTML_TEMPLATE = """
       
       addMessage(text, "user");
       input.value = "";
+      adjustInputHeight();
 
       const response = await fetch("/chat", {
         method: "POST",
@@ -114,6 +134,25 @@ HTML_TEMPLATE = """
       const data = await response.json();
       addMessage(data.reply, "bot");
     }
+
+    // Enter to send, Shift+Enter for newline
+    input.addEventListener('keydown', (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    // Keep input height if user clicks outside
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target)) {
+            if (!input.value.trim()) {
+            input.style.height = 'auto'; // shrink back if empty
+            } else {
+            adjustInputHeight(); // keep height if has content
+            }
+        }
+    });
 
     function addMessage(text, sender) {
       const container = document.getElementById("chat-container");
